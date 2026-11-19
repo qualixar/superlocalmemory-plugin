@@ -1,6 +1,6 @@
 ---
 name: slm-getting-started-bot
-description: First-session orientation for SuperLocalMemory on a headless bot host (Grok Bot, or any Cursor-format plugin install with no hooks, no dashboard, and no interactive setup wizard). What is different here vs. Claude Code/Codex, which 19 tools are actually available, and the first three calls to make.
+description: First-session orientation for SuperLocalMemory on a headless bot host (Grok Bot, or any Cursor-format plugin install with no hooks, no dashboard, and no interactive setup wizard). What is different here vs. Claude Code/Codex, which 21 tools are actually available, and the first three calls to make.
 when_to_use: |
   - The very first session after SLM is installed as a Grok Bot / Cursor plugin
   - "What can I do with SuperLocalMemory here?"
@@ -45,16 +45,17 @@ format in the first place.
 
 ---
 
-## What IS available: the core profile (19 tools)
+## What IS available: the core profile (20 tools)
 
 This plugin sets `SLM_MCP_PROFILE=core`, the smallest tool tier, on purpose —
 a shared, memory-tight computer should not load tool descriptions or RAM for
-tiers it will not use. The 19 tools:
+tiers it will not use. The 20 tools:
 
 `remember`, `recall`, `search`, `fetch`, `expand`, `list_recent`, `update_memory`,
 `forget`, `session_init`, `close_session`, `slm_compress`, `slm_retrieve`,
 `slm_cache_set`, `slm_cache_get`, `slm_optimize_stats`, `review_correction`,
-`list_corrections`, `get_memory_summary`, `switch_profile`.
+`list_corrections`, `settle_dispute`, `get_memory_summary`,
+`switch_profile`.
 
 If you are looking at another skill that mentions a tool NOT in this list
 (`build_code_graph`, `mesh_send`, `mesh_wait`, `remember_media`,
@@ -68,7 +69,9 @@ Two things the core set does cover that other skills explain: `remember` takes
 `kind` and `replaces` (a newer version of a memory should be saved with
 `replaces=<fact_id>`; see `slm-remember`), and `list_corrections` /
 `review_correction` handle the review of an `update_memory` edit. A bot with
-no one to review should prefer `replaces` over `update_memory`.
+no one to review should prefer `replaces` over `update_memory`. When recall
+shows `disputed: true`, ask the user which side is true now and pass the answer
+to `settle_dispute`; never settle one on a guess.
 
 ---
 
@@ -77,8 +80,8 @@ no one to review should prefer `replaces` over `update_memory`.
 SuperLocalMemory can keep pictures and PDFs (`remember_media`,
 `remember_document`, `get_media`, `media_status`) and lets bots message each
 other (`mesh_peers`, `mesh_send`, `mesh_inbox`, `mesh_wait`). None of these is in
-the 18-tool core set this plugin ships, and pictures need a computer with 16 GB
-of memory and a 1.5 GB download, which a shared bot computer rarely has. Do not
+the 18-tool core set this plugin ships, and pictures set up by themselves only on a computer with 16 GB
+of memory (a 1.5 GB download), which a shared bot computer rarely has. Do not
 look for these tools here and do not report them as broken. If the user wants
 them, the answer is a different setup: the `full` tool set
 (`SLM_MCP_PROFILE=full`, the user's decision) plus `slm media enable` on a
@@ -195,4 +198,4 @@ quality on a shared box.
 
 ---
 
-*SuperLocalMemory v4.2.19 · Qualixar · AGPL-3.0-or-later*
+*SuperLocalMemory v4.2.30 · Qualixar · AGPL-3.0-or-later*

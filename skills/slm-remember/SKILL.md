@@ -137,6 +137,10 @@ remember(
   idempotency_key: str = "",# replaying the same key will not store a second copy
   kind: str = "",      # what sort of memory this is; see "Say what kind it is"
   replaces: str = None,# fact_id (or memory_id) of the earlier memory this one replaces
+  slot: str = "",      # "subject/relation[/qualifier]": the one thing this states a value of
+  slot_value: str = "",# that value in a few words; the same value later changes nothing
+  source_file: str = "",# absolute path of the file this was learned from (recall flags changes)
+  cues: list = None,   # when to bring it back: ["path:src/**/schema.py", "tool:Bash:git push"]
   profile_id: str = "",# write to another existing profile; "" = the active one
   agent_id: str = "mcp_client", # attribution; resolved from the connection when left alone
 )
@@ -256,6 +260,58 @@ never be deleted, so rejecting thousands would lock their memories for good.
 Never reject cases in bulk to tidy the list. To cut the guesses at the source,
 see `slm-status` ("Too many model calls").
 
+Since 4.2.30 the background judges also read these guesses. A judge may close
+one only when its answer is that the older memory stays true (the two say the
+same thing, both hold, they are separate events, or they are unrelated), and
+only once it has earned a certificate from people's audit answers on this
+store. Closed guesses show in `slm corrections overtaken` as `judge_closed` and
+come back with `slm corrections restore-overtaken <case_id>`. A guess that the
+newer memory replaces the older one always waits for a person.
+
+### 6b. Values that change: name the slot, and the file it came from
+
+For a value a later save may change (a port, a version, a release cadence, a
+preference), name the slot and the value:
+
+```
+remember(content="SLM now ships one big release a month",
+         slot="SLM/release cadence", slot_value="monthly")
+```
+
+A later memory with the same slot and the same value is a restatement and
+changes nothing. A different value does not silently replace the old one: it
+opens a dispute, and a decision (by you on evidence, the user, or a checked rule) settles it; `settle_dispute` records who decided and `keep="reopen"` undoes it. A slot
+with no value only groups memories and never retires anything.
+
+When the fact was read from a local file, pass `source_file` with its absolute
+path. SuperLocalMemory fingerprints the file at once; a later recall marks the
+memory `source: changed` or `missing` when the file changes or goes, so the
+next agent reads it again before relying on it. CLI: `--slot`, `--slot-value`,
+`--source-file`.
+
+### 6c. Cues: bring a memory back at the step where it matters
+
+Most memories are best found by asking. A plan or a warning that matters at one
+exact step is different: nobody will ask for it before the step, so attach a cue
+and SuperLocalMemory shows it when the step arrives.
+
+```
+remember(content="Run the schema migration check before pushing",
+         kind="prospective", project="superlocalmemory",
+         cues=["path:src/**/schema.py", "tool:Bash:git push"])
+```
+
+Add a cue when the memory is a to-do or a warning tied to a file (`path:`), a
+command (`tool:Bash:git push`), an error you have seen before (`error:database
+is locked`), a repository (`repo:superlocalmemory`) or a date (`date:2026-11-20`,
+from that day on). Pick the narrowest cue that still catches the step: a broad
+one such as `repo:` or an early `date:` brings the memory back in every session,
+which is noise. Do not add cues to ordinary facts, preferences or rules; those are
+already loaded or recalled. At most 8 cues, `kind:pattern` each; a malformed one
+is refused before anything is saved. Each memory comes back once per session, and
+only while the user has the `delivery.cues` setting on. CLI: `--cue KIND:PATTERN`
+(repeatable). `slm cues list` shows them.
+
 ### 7. One fact per call
 
 Store one atomic fact per `remember` call. Do not concatenate multiple unrelated
@@ -269,6 +325,48 @@ Untagged, unscoped facts are harder to retrieve and harder to manage. Minimum:
 set `tags` to one or two relevant terms and `project` to the repo/product name.
 
 ---
+
+## Credentials are never stored (the secret screen, 4.2.30)
+
+Never put an API key, token, password or private key in a memory. With `trust.secret_screen`
+on, SLM replaces anything shaped like a credential by a typed placeholder before it is
+stored, in every door (`remember`, `observe`, the hooks, imports): `[REDACTED:GITHUB:ab12]`
+keeps the type and the last four characters of a long key, nothing else, and the original is
+kept nowhere (not the database, the search index, the journal or a log). A sentence such as
+"the wifi password is ..." is not a credential shape and is stored as written, so do not
+rely on the screen: leave the secret out and say where it lives ("in the keychain").
+`slm health --memory` counts the placeholders by type, never a value.
+
+Who saved it also decides what the memory may become. A save by an agent (MCP, or a shell with
+no terminal) is the agent's own words (`agent_inferred`), not the user's statement
+(`user_direct`): with `trust.taint` on, saving it with `kind="rule"` or `kind="decision"` (or
+confirming that kind later) is its recorded promotion, so it reaches session start and appears
+under Recent decisions with Undo, while a pin, a classifier suggestion and anything from a web
+page, a tool's output or an import still wait for the user's OK (`slm trust pending`). Do not
+save text copied from a web page or a tool's output as a rule.
+
+## Importing a user's export from another app (WS-9)
+
+When the user hands you an export from ChatGPT, Claude, Mem0 or Letta, or a folder of Markdown
+notes (`AGENTS.md`, `CLAUDE.md`, `MEMORY.md`), do not loop over it with `remember`. Use the
+importer, which is one run that can be undone: there is no MCP tool for it (tool caps), so run it
+in the shell.
+
+```bash
+slm import preview PATH            # what the file holds, in plain words; saves nothing
+slm import run PATH --json         # background job; prints the run to watch
+slm import status [RUN_ID]         # progress
+slm import undo RUN_ID             # takes the whole run back exactly
+```
+
+It is on by default and runs only when someone starts an import; if a command
+says it is off (the user or the kill switch turned it off), tell the user and ask before you switch it on (`slm flags set portability.import on`). Preview first and read the user the
+sentence it prints. Imported text is marked `imported_file`, the lowest origin: it never replaces
+a memory the user already has, never becomes a rule or a pin by itself, and a value that disagrees
+with what they said waits as a dispute (`slm disputes`) for a decision. Every import is recorded
+with who started it, and Undo is `slm import undo`. ChatGPT's saved-memory list is not part of its
+export: ask the user to copy it into a text file and import that. A Letta agent file does not carry
+archival memory; say so.
 
 ## Deleting stale facts
 
@@ -387,4 +485,4 @@ sessions on this machine, so use it only when the user asks to move. See
 
 ---
 
-*SuperLocalMemory v4.2.19 · Qualixar · AGPL-3.0-or-later*
+*SuperLocalMemory v4.2.30 · Qualixar · AGPL-3.0-or-later*

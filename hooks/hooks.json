@@ -48,6 +48,16 @@
             "timeout": 5
           }
         ]
+      },
+      {
+        "matcher": "Write|Edit|MultiEdit|NotebookEdit|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/scripts/slm-run\" hook cue || true",
+            "timeout": 5
+          }
+        ]
       }
     ],
     "UserPromptSubmit": [
@@ -66,6 +76,15 @@
             "type": "command",
             "command": "\"${CLAUDE_PLUGIN_ROOT}/scripts/slm-run\" hook topic_shift || true",
             "timeout": 3
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/scripts/slm-run\" hook auto_recall || true",
+            "timeout": 7
           }
         ]
       }
@@ -93,6 +112,16 @@
           {
             "type": "command",
             "command": "\"${CLAUDE_PLUGIN_ROOT}/scripts/slm-run\" hook before_web || true",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit|MultiEdit|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/scripts/slm-run\" hook cue || true",
             "timeout": 5
           }
         ]

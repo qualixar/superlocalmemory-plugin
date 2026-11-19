@@ -1,7 +1,7 @@
 ---
 name: slm-status
 description: Health and optimization stats for SuperLocalMemory — call slm_optimize_stats() for live compression and cache counters (compress_runs, tokens_saved_compress, cache_proxy_hits, cache_proxy_misses, cache_kv_hits, cache_kv_misses); run slm status [--json] for system state (mode, profile, DB size, fact/entity/edge counts) and slm doctor [--json] for preflight including the "Optimize (Surface B)" health line; use together to confirm optimization is actually saving tokens.
-when_to_use: "check slm status, health check, is slm working, optimize stats, tokens saved, cache hits, compress runs, slm doctor, preflight, db size, slm info, diagnose slm, slm media status, are pictures on, slm features, picture search not working, slm media repair, embedder status, memory health, slm enrich, repair memories, undo a repair, failed saves, repair saves, redacted memory, blanked memory, mode b slow, too many model calls, lower llm cost, pile of correction proposals, dismiss corrections"
+when_to_use: "check slm status, health check, is slm working, optimize stats, tokens saved, cache hits, compress runs, slm doctor, preflight, db size, slm info, diagnose slm, slm media status, are pictures on, slm features, picture search not working, slm media repair, embedder status, memory health, slm enrich, repair memories, undo a repair, failed saves, repair saves, redacted memory, blanked memory, mode b slow, too many model calls, lower llm cost, pile of correction proposals, dismiss corrections, truth checks, slm doctor --truth, judge certificates, second opinions, slm health --memory, does memory help, which memories are used, memory use rate, withholding, audit questions waiting, slm audit --count, slm proposals, proposed changes, undo a change, roll back a change, previous version of a summary, slm consent, what leaves my computer, slm measurement, turn off withholding, does slm experiment on me, stop measuring"
 allowed-tools: slm_optimize_stats, get_status, get_brain_evidence_status, Bash(slm:*)
 ---
 
@@ -215,7 +215,7 @@ card at the top of the Health pane. Guide: `docs/memory-health.md`.
 
 ## Pictures and documents: status and repair
 
-Pictures and documents are an optional feature, off by default. Check them with
+Pictures and documents are on by default (automatic on 16 GB or more, one click below). Check them with
 the CLI (the MCP `get_status` does not report them):
 
 ```bash
@@ -233,8 +233,168 @@ failed. The five picture tools (`remember_media`, `get_media`,
 the feature is on and only in the `full`, `power` and `whole` tool sets; a
 restart (`slm restart`) starts the picture worker. A document's own progress
 is the `media_status` MCP tool, not this command. Details, limits and the
-16 GB requirement: `slm-media`. `slm status` also prints an "Embedding switch" line while a model switch or
+the 16 GB rule (automatic above, one click below): `slm-media`. `slm status` also prints an "Embedding switch" line while a model switch or
 the memory-engine upgrade is pending.
+
+## Truth checks, judges and audit questions (4.2.30)
+
+```bash
+slm doctor --truth [--json] [--db <path>]   # read-only; exits 1 when an invariant is violated
+slm audit --count [--json]                  # how many blind audit questions wait for a label
+slm signing status [--all] [--json]         # signed memories and the keyed audit chain (trust.signing)
+slm proposals list [--json]                 # changes SLM proposes to memory (any caller may apply or reject)
+slm wiki status [--json]                    # compiled pages, the Markdown folder, edits waiting
+```
+
+`slm doctor --truth` reports five things, counts and ids only:
+
+- **Invariants** (I-01 ... I-16): whether the current values and their history
+  are consistent. `FAIL` lines name the invariant and a few ids. I-10 (D-49) says no
+  memory changed without a certificate id, a rule-certificate id or a recorded decision
+  (who and channel): it checks judge receipts that acted, settled disputes, applied or
+  rolled-back proposal sets, promotions and approvals; an id is prefixed with its kind
+  (`dispute:`, `proposal_set:`, `promotion:`, `approval:`, `receipt:`).
+- **Judge certificates**: which judges may act on their own, from how many
+  audited answers, and which were stopped (`labels`: new answers no longer
+  support it; `drift`: its recent scores changed). None is normal on a new store.
+- **Second opinions**: how often a stronger judge, asked in the background
+  about 1 in 20 confident answers, was sure of something else, with 95% bounds.
+- **Signatures** (`signatures` in `--json`; `trust.signing`): how many memories
+  are signed, how many not yet, and a random sample of 500 verified (`--signatures-all`
+  checks every one): `modified` (by id), `signed_under_another_key` (a lost key; cannot
+  be checked, nothing deleted) and `moved_by_a_fold`. The key is in the user's OS
+  keychain; with none, signing is "unavailable" and counts are all that is reported.
+  It detects a change made by something that has the files but not the user's login
+  session; it does not stop a process running as the user.
+- **Audit chain** (`audit_chain`): the audit trail's links verified, including HMAC
+  links keyed with the same key; `plain_after_keyed` counts plain links after keying
+  began (a command run while the daemon was down, or a downgrade). Exit 1 on a modified
+  memory or a broken link. `slm signing resign --yes` (any caller, recorded as a decision, daemon stopped)
+  signs again what a lost key signed: look at the listed memories with `slm why` first.
+
+```bash
+slm health --memory [--json] [--db <path>]   # read-only Memory Health report
+```
+
+(MCP: `health(memory=true)`.) It reports what was delivered (and whether
+withholding is on), how often each delivered memory is used, with a 95% range,
+and whether memory measurably helps. Read it honestly: a use rate is how often
+the agent acted on a memory, not proof it helped; "helps"/"hurts" appears only
+when the anytime-valid range excludes 0, and each line says how many
+deliveries it has against how many its plan needs (months of use on one store;
+a single retrieval channel's value is usually out of reach). Never report "no
+clear effect yet" as "memory does not help". Its learning section lists each
+learner as learning, stalled, off, waiting or not wired: report a stalled learner
+as stalled (with its reason), never as healthy.
+  A disagreement is a warning, not a proven error.
+
+The dashboard shows the same on the Health page's **Truth checks** card.
+
+**Audit labels come from a different model (D-49).** A blind audit question is two
+memories and the question a judge was asked, never the judge's answer. Any caller may
+label. `slm audit --count --json` says how many wait (`data.count`); `slm audit --list
+--model <your model id> --json` (or `list_disputes(audit=true, model=...)`) lists them,
+leaving out pairs only your own model judged; `slm audit --answer ITEM LABEL --model <id>`
+(or `settle_dispute(dispute_id="audit:<item>", keep=LABEL, model=<id>)`) gives one label,
+and `--retract ITEM` takes it back. A label is recorded with who gave it and counts toward
+a judge's certificate only when your model differs from the judged tier's model (a person
+on the dashboard always counts); give your real model id, never a guess, and `cannot_tell`
+when you cannot tell. A person at a terminal can still run `slm audit` for one question at
+a time.
+
+**Proposed changes: any caller decides, every decision is recorded.** SLM can propose a unit of changes to
+memory (retire an older memory, merge copies, rewrite a derived summary). Each
+set is applied all-or-nothing, undone exactly with `rollback`, and every
+derived summary, persona, entity profile or core block keeps its previous
+version before it is rewritten. `slm proposals list --json` shows what waits
+(`data.count`, and per set its plain-words proposals); `slm proposals show
+SET_ID --json` shows one. `apply`, `reject` and `rollback` work from any caller (no
+terminal, no confirmation); each is recorded with who, the channel and the time, and
+the dashboard's **Proposed changes** card has **Apply**, **Reject** and **Undo** while
+**Recent decisions by your agents** lists every decision with an Undo. Read what a set
+changes before you apply it, and report anything that looks wrong.
+
+**The living wiki** (4.2.30, WS-6) is pages compiled from memory: current state per
+subject, the story of a family of decisions, a topic. Every sentence is a
+word-for-word piece of a memory it cites or a fixed template over slot values,
+checked again whenever the page is read; no model writes any of it, and each page
+says how many sentences it withheld. A page is never a memory. `slm wiki status
+--json` shows the pages and the Markdown folder; `slm wiki diff --json` shows what
+a build would change and which files hold the user's edits; `slm wiki build` writes
+the approved pages (`compiler.wiki` is on by default; `shadow` only reports).
+`slm wiki rebuild` (compile and apply the pages, recorded and undone with `slm proposals
+rollback`) and `slm wiki sync` (read the user's edits to the Markdown back as proposals)
+work from any caller, and an edit is only ever a proposal, decided like any set with
+`slm proposals`.
+A deleted line in a file forgets nothing, and erasing a memory removes it from the
+pages and the files. `compiler.dream` (off) lets the background cycle queue pages
+and exact-duplicate merges for review; it applies nothing. The dashboard's **Living
+wiki** card lists the pages, shows each sentence with the memory it comes from, and
+has **Rebuild pages** and **Read my edits**.
+
+`slm consent [--json]` lists what may leave this computer. The background
+judges may ask the online Jev judge about pairs of memories only with the
+user's consent (`judge_ladder_hosted`), given in the dashboard or with
+`slm consent give` at a terminal. Never give it for the user; withdrawing
+(`slm consent withdraw judge_ladder_hosted`) is fine when they ask.
+
+`slm measurement status [--json]` shows what SLM measures about its own
+deliveries and each measure's state. By default it writes a receipt for every
+delivery (ids, ranks, scores, the logged chance of each choice; this computer
+only), in about 1 in 10 session starts leaves one eligible memory out or
+switches off one way of searching (by a logged random draw, never pinned rules,
+standing rules, core blocks, explicit recall, cues or lease warnings), and in
+about 1 in 20 of an agent's recalls swaps two neighbouring results. Usage
+detection is on too: when a reply ends, SLM compares it with the memories the
+agent was given, to see which were used, and keeps ids and scores only (on this
+computer). That is how `slm health --memory` can say whether memory helps. The JSON carries
+`measuring`, `kill_switch`, each flag's `state`, `pending` (the user has not yet
+seen the notice) and the `notice` text; reading it never marks the notice as
+seen. Turning it off is the user's choice: `slm measurement off` (withholding,
+swapping and usage detection; add `--receipts` to stop the receipts too) or the dashboard's
+Settings card "Help SLM measure what works". There is no plugin setting for it:
+this is an instruction to you, and the dashboard card is the user's own switch.
+Never switch it off on your own
+initiative, even to make a test or a measurement tidier. Run it only when the
+user asks, and when `pending` is true, pass the notice on to the user.
+
+**The 4.2.30 kill switch.** `get_status` and `health` carry `kill_switch`
+(`on`, `source`: file or environment, and a sentence in words). `slm flags`
+shows it too. When it is on, everything new in 4.2.30 is off and recall reads the
+way it did before 4.2.30: no dispute, source, standing or origin notes, no `why`
+block, no background pass writing anything. Say so when results look plainer than
+usual. Turning it on or off is the user's choice (`slm flags kill on|off`, the
+dashboard card "Turn off everything new in 4.2.30", or `POST /api/flags/kill`);
+never flip it on your own. It does not undo retirements: when the user wants
+the memories 4.2.30 retired back, run `slm flags rollback-retirements --dry-run`,
+tell them the count, and run it without `--dry-run` only on their yes. It is
+recorded as a decision and **Recent decisions** can undo it.
+
+## Trust: the instruction firewall and the secret screen (4.2.30)
+
+```bash
+slm trust status [--json]     # is the firewall acting; how many memories wait; how many unclassified
+slm trust pending [--json]    # the memories held back until promoted, with where each came from
+slm health --memory --json    # `trust`: origins, waiting_items, credentials held as placeholders (counts by type)
+```
+
+SLM never hides a memory from you: recall and the session start show every memory. A memory is data
+until SLM puts it where an agent obeys it: a pin, a standing rule or decision, core memory. With
+`trust.taint` on, a memory whose taint is below `agent_inferred` (a web page, a tool's output, a
+peer's message, an import, a model's text, or one whose source was not recorded) is held back from
+those roles until it is promoted on purpose. Your own saved rules (`agent_inferred`) and memories
+saved before 4.2.30 (`legacy`) are trusted as they are. See what is held and why (`slm trust pending --json` →
+`data.items[].origin`, `wanted_words`). One explicit call promotes a memory: `slm trust promote
+FACT_ID`, `core_memory(action="promote")`, or the dashboard's **Promote** button. Any caller may
+promote; the promotion is recorded (who, channel, time), listed under **Recent decisions by your
+agents**, and `slm trust withdraw FACT_ID` takes it back. Promote only what you have checked the
+user wants as an instruction. `data.unclassified` is the number of memories not yet given an
+origin class; they cannot be an instruction until the background batch runs. Memories saved before
+4.2.30 are `legacy` and keep working. Saving or confirming your own memory as a rule or decision
+needs no promotion, while the same act on text from a web page, a tool, a peer or an import only
+puts it on the waiting list, and the background classifier never promotes.
+`trust.secret_screen` is separate: it stores a detected credential as `[REDACTED:TYPE:LAST4]`,
+and `data.trust.secrets_held_back.by_type` counts them (never a value).
 
 ## Recommended Health Workflow
 
@@ -244,6 +404,7 @@ the memory-engine upgrade is pending.
 4. If `ok: false` on any MCP tool — check `note` field, then run `slm doctor` to isolate the failure.
 5. If recall seems to miss memories that were saved, run `slm db integrity` before concluding anything.
 6. If a picture will not come back for a question about what it shows, run `slm media status`, then `slm media repair --dry-run`.
+7. If remembered values look wrong or contradictory, run `slm doctor --truth`, then `slm disputes list`.
 
 ## Fail-Open
 
@@ -268,4 +429,4 @@ the memory-engine upgrade is pending.
 
 ---
 
-SuperLocalMemory v4.2.19 · Qualixar · AGPL-3.0-or-later
+SuperLocalMemory v4.2.30 · Qualixar · AGPL-3.0-or-later
