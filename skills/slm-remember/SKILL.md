@@ -326,7 +326,7 @@ set `tags` to one or two relevant terms and `project` to the repo/product name.
 
 ---
 
-## Credentials are never stored (the secret screen, 4.2.30)
+## Credentials are never stored (the secret screen, added in 4.2.30)
 
 Never put an API key, token, password or private key in a memory. With `trust.secret_screen`
 on, SLM replaces anything shaped like a credential by a typed placeholder before it is
@@ -485,4 +485,4 @@ sessions on this machine, so use it only when the user asks to move. See
 
 ---
 
-*SuperLocalMemory v4.2.30 · Qualixar · AGPL-3.0-or-later*
+*SuperLocalMemory v4.2.31 · Qualixar · AGPL-3.0-or-later*

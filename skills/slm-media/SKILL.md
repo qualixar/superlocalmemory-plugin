@@ -228,7 +228,7 @@ Rules for reading them:
 
 ---
 
-## Optional picture and document models (4.2.30)
+## Optional picture and document models (added in 4.2.30)
 
 Three parts on top of pictures and documents, each **off** until someone turns
 it on. Two download a model, so the size is shown first and nothing downloads
@@ -386,4 +386,4 @@ minutes (previous vectors are kept) and let them decide.
 
 ---
 
-*SuperLocalMemory v4.2.30 · Qualixar · AGPL-3.0-or-later*
+*SuperLocalMemory v4.2.31 · Qualixar · AGPL-3.0-or-later*
