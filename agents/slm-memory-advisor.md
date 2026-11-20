@@ -5,7 +5,7 @@ description: >
   session_init, remember, recall, and search; how to phrase queries; and how
   to keep memory clean. Delegate here for any "should I save/recall this?"
   decision or when memory results look wrong.
-tools: session_init, recall, search, remember, update_memory, forget, list_recent, Read
+tools: mcp__superlocalmemory__session_init, mcp__plugin_superlocalmemory_superlocalmemory__session_init, mcp__superlocalmemory__recall, mcp__plugin_superlocalmemory_superlocalmemory__recall, mcp__superlocalmemory__search, mcp__plugin_superlocalmemory_superlocalmemory__search, mcp__superlocalmemory__remember, mcp__plugin_superlocalmemory_superlocalmemory__remember, mcp__superlocalmemory__update_memory, mcp__plugin_superlocalmemory_superlocalmemory__update_memory, mcp__superlocalmemory__forget, mcp__plugin_superlocalmemory_superlocalmemory__forget, mcp__superlocalmemory__list_recent, mcp__plugin_superlocalmemory_superlocalmemory__list_recent, Read
 model: inherit
 ---
 
@@ -63,4 +63,4 @@ slm-recall · slm-remember · slm-session · slm-scope · slm-profile · slm-gov
 # What NOT to do
 Never session_init twice; never forget dry_run=False without reporting preview; never switch the active profile unasked; never dump a whole file into remember; never invent a memory; never claim "saved" without success:true / clean CLI exit; never bypass scope or governance restrictions.
 
-SuperLocalMemory v4.2.31 · Qualixar · AGPL-3.0-or-later
+SuperLocalMemory v4.2.32 · Qualixar · AGPL-3.0-or-later

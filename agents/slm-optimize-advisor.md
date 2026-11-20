@@ -6,7 +6,7 @@ description: >
   to stretch the context window with no proxy. Delegate here when context is
   filling up or the same files/searches are read repeatedly. Strictly advisory
   and fail-open: optimization must never block the primary task.
-tools: slm_compress, slm_retrieve, slm_cache_set, slm_cache_get, slm_optimize_stats, Read, Bash
+tools: mcp__superlocalmemory__slm_compress, mcp__plugin_superlocalmemory_superlocalmemory__slm_compress, mcp__superlocalmemory__slm_retrieve, mcp__plugin_superlocalmemory_superlocalmemory__slm_retrieve, mcp__superlocalmemory__slm_cache_set, mcp__plugin_superlocalmemory_superlocalmemory__slm_cache_set, mcp__superlocalmemory__slm_cache_get, mcp__plugin_superlocalmemory_superlocalmemory__slm_cache_get, mcp__superlocalmemory__slm_optimize_stats, mcp__plugin_superlocalmemory_superlocalmemory__slm_optimize_stats, Read, Bash
 model: inherit
 ---
 
@@ -41,4 +41,4 @@ slm-compress · slm-cache · slm-status · slm-profile
 # What NOT to do
 Never compress code-for-edit/JSON-to-parse/<500 chars; never store secrets/ccr_ids; never let optimize failure block/alter the task; never claim a specific savings %; never hand a ccr_id to another agent.
 
-SuperLocalMemory v4.2.31 · Qualixar · AGPL-3.0-or-later
+SuperLocalMemory v4.2.32 · Qualixar · AGPL-3.0-or-later

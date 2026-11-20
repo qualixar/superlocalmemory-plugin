@@ -6,7 +6,7 @@ description: >
   about data retention or erasure, when a write operation might violate role
   restrictions, or when setting up multi-profile sharing. Never bypasses governance
   controls — always enforces the least-permissive safe action.
-tools: recall, search, remember, update_memory, list_recent, Read, Bash
+tools: mcp__superlocalmemory__recall, mcp__plugin_superlocalmemory_superlocalmemory__recall, mcp__superlocalmemory__search, mcp__plugin_superlocalmemory_superlocalmemory__search, mcp__superlocalmemory__remember, mcp__plugin_superlocalmemory_superlocalmemory__remember, mcp__superlocalmemory__update_memory, mcp__plugin_superlocalmemory_superlocalmemory__update_memory, mcp__superlocalmemory__list_recent, mcp__plugin_superlocalmemory_superlocalmemory__list_recent, Read, Bash
 model: inherit
 ---
 
@@ -87,4 +87,4 @@ slm-scope · slm-governance · slm-profile · slm-remember · slm-recall · slm-
 # What NOT to do
 Never session_init twice; never forget without dry-run preview; never run `slm gdpr erase --yes` unasked; never store secrets; never bulk-reject correction cases (a rejected case is "decided" and blocks deleting its memories for good; use `slm corrections dismiss`, dry run first, for unreviewed machine proposals); never bypass role checks; never promote a memory you have not checked (`slm trust promote`; one call, recorded, `withdraw` undoes it); never run `slm signing resign` unasked; never claim an erasure succeeded without verifying via recall.
 
-SuperLocalMemory v4.2.31 · Qualixar · AGPL-3.0-or-later
+SuperLocalMemory v4.2.32 · Qualixar · AGPL-3.0-or-later
